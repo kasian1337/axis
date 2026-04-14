@@ -1,21 +1,22 @@
 <!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Mini App</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-</head>
-<body>
-  <h1>Mini App работает</h1>
-  <button onclick="sendData()">Отправить данные</button>
-
-  <script>
-    const tg = window.Telegram.WebApp;
-    tg.expand();
-
-    function sendData() {
-      tg.sendData("hello_from_app");
-    }
-  </script>
-</body>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8">
+        <title>Deep Work</title>
+        <script src="https://telegram.org/js/telegram-web-app.js"></script>
+        <link rel="stylesheet" href="styles.css">
+    </head>
+    <body>
+        <div class="container">
+            <h1>Deep Work</h1>
+            <div class="timer" id="timer">00:00:00</div>
+            <div class="buttons">
+                <button id="startBtn" class="start">Начать</button>
+                <button id="stopBtn" class="stop">Завершить</button>
+                <button id="resetBtn" class="reset">Сбросить</button>
+            </div>
+            <div class="status" id="status">Не активно</div>
+        </div>
+        <script src="script.js"></script>
+    </body>
 </html>
