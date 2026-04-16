@@ -59,8 +59,54 @@ h1 {
   background: #3b82f6;
   color: white;
 }
+
 .status {
   margin-top: 20px;
   font-size: 18px;
   opacity: 0.8;
+}
+
+.fab-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+}
+
+.fab {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #3b82f6;
+  color: white;
+  font-size: 24px;
+  border: none;
+}
+
+.fab-options {
+  display: none;
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+
+.fab-options button {
+  margin: 5px 0;
+  padding: 10px;
+}
+.opt {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: none;
+  background: #1e293b;
+  color: white;
+  cursor: pointer;
+}
+
+.opt:nth-child(1) { top: 0; right: 75px; }
+.opt:nth-child(2) { top: -75px; right: 60px; }
+.opt:nth-child(3) { top: -75px; right: 0px; }
+
+.opt.active {
+  background: #22c55e;
 }
