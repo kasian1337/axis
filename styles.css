@@ -2,6 +2,10 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 body {
@@ -103,9 +107,18 @@ h1 {
   cursor: pointer;
 }
 
-.opt:nth-child(1) { top: 0; right: 75px; }
-.opt:nth-child(2) { top: -75px; right: 60px; }
-.opt:nth-child(3) { top: -75px; right: 0px; }
+.opt:nth-child(1) {
+  top: 0;
+  right: 75px;
+}
+.opt:nth-child(2) {
+  top: -75px;
+  right: 60px;
+}
+.opt:nth-child(3) {
+  top: -75px;
+  right: 0px;
+}
 
 .opt.active {
   background: #22c55e;
