@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8">
+        <title>Привычки</title>
+        <link rel="stylesheet" href="habits.css">
+    </head>
+    <body>
+        <div class="container">
+            <h1>Привычки</h1>
+            <div class="habit-list">
+                <div class="habit">
+                    <div class="habit-info">
+                        <span class="habit-name">Тренировка</span>
+                        <span class="habit-streak">🔥 3 дня</span>
+                    </div>
+                    <div class="habit-days">
+                        <div class="day active"></div>
+                        <div class="day active"></div>
+                        <div class="day"></div>
+                        <div class="day"></div>
+                        <div class="day"></div>
+                    </div>
+                    <button class="check-btn">✔</button>
+                </div>
+                <div class="habit">
+                    <div class="habit-info">
+                        <span class="habit-name">Английский</span>
+                        <span class="habit-streak">🔥 5 дней</span>
+                    </div>
+                    <div class="habit-days">
+                        <div class="day active"></div>
+                        <div class="day active"></div>
+                        <div class="day active"></div>
+                        <div class="day"></div>
+                        <div class="day"></div>
+                    </div>
+                    <button class="check-btn">✔</button>
+                </div>
+            </div>
+        </div>
+        <div class="add-habit">
+            <input id="habitInput" placeholder="Новая привычка">
+            <button id="addBtn">Добавить</button>
+        </div>
+        <script src="habits.js"></script>
+    </body>
+</html>

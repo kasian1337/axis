@@ -127,3 +127,6 @@ document.addEventListener("mousemove", (    e) => {
 function clearActive() {
     buttons.forEach(b => b.classList.remove("active"));
 }
+function goTo(page) {
+  window.location.href = page;
+}
