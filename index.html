@@ -2,29 +2,63 @@
 <html lang="ru">
     <head>
         <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Deep Work</title>
         <script src="https://telegram.org/js/telegram-web-app.js"></script>
         <link rel="stylesheet" href="styles.css">
     </head>
     <body>
-        <div class="container">
-            <h1>Deep Work</h1>
-            <div class="timer" id="timer">00:00:00</div>
-            <div class="buttons">
-                <button id="startBtn" class="start">Начать</button>
-                <button id="stopBtn" class="stop">Завершить</button>
-                <button id="resetBtn" class="reset">Сбросить</button>
+        <div id="timer-page" class="page active">
+            <div class="container">
+                <h1>Deep Work</h1>
+                <div class="timer-card">
+                    <div class="timer" id="timer">00:00:00</div>
+                </div>
             </div>
-            <div class="status" id="status">Не активно</div>
         </div>
-        <div class="fab-container">
-            <div class="fab-options" id="fabOptions">
-                <button class="opt" data-page="stats">S</button>
-                <button class="opt" data-page="history">H</button>
-                <button class="opt" data-page="settings">⚙</button>
+        <div id="habits-page" class="page">
+            <div class="container">
+                <h1>Привычки</h1>
+                <div class="habit-list">
+                    <div class="habit">
+                        <div class="habit-info">
+                            <span class="habit-name">Тренировка</span>
+                            <span class="habit-streak">🔥 3 дня</span>
+                        </div>
+                        <div class="habit-days">
+                            <div class="day active"></div>
+                            <div class="day active"></div>
+                            <div class="day"></div>
+                            <div class="day"></div>
+                            <div class="day"></div>
+                        </div>
+                        <button class="check-btn">✔</button>
+                    </div>
+                    <div class="habit">
+                        <div class="habit-info">
+                            <span class="habit-name">Английский</span>
+                            <span class="habit-streak">🔥 5 дней</span>
+                        </div>
+                        <div class="habit-days">
+                            <div class="day active"></div>
+                            <div class="day active"></div>
+                            <div class="day active"></div>
+                            <div class="day"></div>
+                            <div class="day"></div>
+                        </div>
+                        <button class="check-btn">✔</button>
+                    </div>
+                </div>
             </div>
-            <button class="fab" id="fabMain">●</button>
+            <div class="add-habit">
+                <input id="habitInput" placeholder="Новая привычка">
+                <button id="addBtn">Добавить</button>
+            </div>
         </div>
+        <nav class="nav">
+            <button class="nav-btn active" data-page="timer">Таймер</button>
+            <button class="nav-btn" data-page="habits">Привычки</button>
+        </nav>
         <script src="script.js"></script>
     </body>
 </html>

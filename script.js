@@ -8,42 +8,52 @@ let accumulatedTime = 0;
 const timerEl = document.getElementById("timer");
 const statusEl = document.getElementById("status");
 
-document.getElementById("startBtn").onclick = () => {
-    if (interval) return;
+// Навигация
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.page + '-page').classList.add('active');
+  });
+});
 
-    startTime = Date.now();
-    statusEl.textContent = "В процессе";
+// Управление таймером через клик
+timerEl.addEventListener('click', () => {
+    if (interval) {
+        // Остановить
+        clearInterval(interval);
+        interval = null;
+        accumulatedTime += Date.now() - startTime;
+        statusEl.textContent = "Остановлено • Нажми еще раз, чтобы продолжить";
+        tg.sendData("stop");
+    } else {
+        // Запустить
+        if (!startTime || accumulatedTime > 0) {
+            startTime = Date.now();
+        }
+        statusEl.textContent = "⏱ В процессе • Нажми, чтобы остановить";
+        interval = setInterval(updateTimer, 100);
+        tg.sendData("start");
+    }
+});
 
-    interval = setInterval(updateTimer, 1000);
-
-    tg.sendData("start");
-};
-
-document.getElementById("stopBtn").onclick = () => {
-    if (!interval) return;
-
-    clearInterval(interval);
-    interval = null;
-
-    accumulatedTime += Date.now() - startTime;
-
-    statusEl.textContent = "Завершено";
-
-    tg.sendData("stop");
-};
-
-document.getElementById("resetBtn").onclick = () => {
-    clearInterval(interval);
-    interval = null;
-
-    startTime = null;
-    accumulatedTime = 0;
-
-    timerEl.textContent = "00:00:00";
-    statusEl.textContent = "Остановлено";
-
-    tg.sendData("reset");
-};
+// Двойной клик для сброса
+let lastClickTime = 0;
+timerEl.addEventListener('click', () => {
+    const now = Date.now();
+    if (now - lastClickTime < 300) {
+        // Двойной клик - сброс
+        clearInterval(interval);
+        interval = null;
+        startTime = null;
+        accumulatedTime = 0;
+        timerEl.textContent = "00:00:00";
+        statusEl.textContent = "Нажми на таймер, чтобы начать";
+        tg.sendData("reset");
+    }
+    lastClickTime = now;
+});
 
 function updateTimer() {
     const current = Date.now() - startTime;
@@ -58,75 +68,76 @@ function updateTimer() {
     timerEl.textContent = `${h}:${m}:${s}`;
 }
 
-const fab = document.getElementById("fabMain");
-const options = document.getElementById("fabOptions");
+// Логика привычек
+let habits = JSON.parse(localStorage.getItem("habits")) || [];
 
-let pressTimer = null;
+const list = document.querySelector(".habit-list");
+const input = document.getElementById("habitInput");
+const addBtn = document.getElementById("addBtn");
 
-fab.addEventListener("mousedown", startPress);
-fab.addEventListener("touchstart", startPress);
+// рендер
+function renderHabits() {
+  list.innerHTML = "";
 
-fab.addEventListener("mouseup", cancelPress);
-fab.addEventListener("mouseleave", cancelPress);
-fab.addEventListener("touchend", cancelPress);
+  habits.forEach((habit, index) => {
+    const div = document.createElement("div");
+    div.className = "habit";
 
-function startPress() {
-    pressTimer = setTimeout(() => {
-        options.style.display = "flex";
-    }, 300);
+    div.innerHTML = `
+      <div class="habit-info">
+        <span class="habit-name">${habit.name}</span>
+        <span class="habit-streak">🔥 ${habit.streak} дней</span>
+      </div>
+
+      <div class="habit-days">
+        ${habit.days.map(d => `<div class="day ${d ? "active" : ""}"></div>`).join("")}
+      </div>
+
+      <button data-index="${index}" class="check-btn">✔</button>
+    `;
+
+    list.appendChild(div);
+  });
+
+  attachEvents();
+  saveHabits();
 }
 
-function cancelPress() {
-    clearTimeout(pressTimer);
+// сохранение
+function saveHabits() {
+  localStorage.setItem("habits", JSON.stringify(habits));
 }
-const buttons = document.querySelectorAll(".opt");
 
-let isHolding = false;
+// добавление
+addBtn.onclick = () => {
+  const name = input.value.trim();
+  if (!name) return;
 
-fab.addEventListener("mousedown", () => {
-    isHolding = true;
-    options.style.display = "block";
-});
+  habits.push({
+    name,
+    streak: 0,
+    days: [false, false, false, false, false]
+  });
 
-document.addEventListener("mouseup", () => {
-    if (!isHolding) return;
+  input.value = "";
+  renderHabits();
+};
 
-    const active = document.querySelector(".opt.active");
-    if (active) {
-        const page = active.dataset.page;
-    }
+// отметка дня
+function attachEvents() {
+  document.querySelectorAll(".check-btn").forEach(btn => {
+    btn.onclick = () => {
+      const i = btn.dataset.index;
 
-    options.style.display = "none";
-    clearActive();
-    isHolding = false;
-});
+      habits[i].days.unshift(true);
+      habits[i].days = habits[i].days.slice(0, 5);
 
-document.addEventListener("mousemove", (    e) => {
-    if (!isHolding) return;
+      habits[i].streak += 1;
 
-    let closest = null;
-    let minDist = Infinity;
-
-    buttons.forEach(btn => {
-        const rect = btn.getBoundingClientRect();
-        const cx = rect.left + rect.width / 2;
-        const cy = rect.top + rect.height / 2;
-
-        const dist = Math.hypot(e.clientX - cx, e.clientY - cy);
-
-        if (dist < minDist) {
-            minDist = dist;
-            closest = btn;
-        }
-    });
-
-    clearActive();
-    if (closest) closest.classList.add("active");
-});
-
-function clearActive() {
-    buttons.forEach(b => b.classList.remove("active"));
+      renderHabits();
+    };
+  });
 }
-function goTo(page) {
-  window.location.href = page;
-}
+
+// старт
+renderHabits();
