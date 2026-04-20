@@ -25,34 +25,26 @@ timerEl.addEventListener('click', () => {
         clearInterval(interval);
         interval = null;
         accumulatedTime += Date.now() - startTime;
-        statusEl.textContent = "Остановлено • Нажми еще раз, чтобы продолжить";
         tg.sendData("stop");
     } else {
         // Запустить
         if (!startTime || accumulatedTime > 0) {
             startTime = Date.now();
         }
-        statusEl.textContent = "⏱ В процессе • Нажми, чтобы остановить";
         interval = setInterval(updateTimer, 100);
         tg.sendData("start");
     }
 });
 
 // Двойной клик для сброса
-let lastClickTime = 0;
-timerEl.addEventListener('click', () => {
-    const now = Date.now();
-    if (now - lastClickTime < 300) {
-        // Двойной клик - сброс
-        clearInterval(interval);
-        interval = null;
-        startTime = null;
-        accumulatedTime = 0;
-        timerEl.textContent = "00:00:00";
-        statusEl.textContent = "Нажми на таймер, чтобы начать";
-        tg.sendData("reset");
-    }
-    lastClickTime = now;
+timerEl.addEventListener('dblclick', () => {
+    clearInterval(interval);
+    interval = null;
+    startTime = null;
+    accumulatedTime = 0;
+    timerEl.textContent = "00:00:00";
+    statusEl.textContent = "Нажми на таймер, чтобы начать";
+    tg.sendData("reset");
 });
 
 function updateTimer() {

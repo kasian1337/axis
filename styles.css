@@ -114,22 +114,6 @@ h1 {
   display: block;
 }
 
-.fab {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: #3b82f6;
-  color: white;
-  font-size: 24px;
-  border: none;
-}
-
-.fab-options {
-  display: none;
-  flex-direction: column;
-  margin-bottom: 10px;
-}
-
 .habit {
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
@@ -324,17 +308,6 @@ h1 {
     padding: 10px 15px;
     font-size: 14px;
     border-radius: 10px;
-  }
-
-  .fab-container {
-    bottom: 15px;
-    right: 15px;
-  }
-
-  .fab {
-    width: 45px;
-    height: 45px;
-    font-size: 18px;
   }
 }
 
