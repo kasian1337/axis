@@ -15,6 +15,10 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById(btn.dataset.page + '-page').classList.add('active');
+    
+    if (btn.dataset.page === 'progress') {
+      renderProgress();
+    }
   });
 });
 
@@ -63,26 +67,87 @@ function updateTimer() {
 // Логика привычек
 let habits = JSON.parse(localStorage.getItem("habits")) || [];
 
+// Миграция старых данных
+habits = habits.map(habit => {
+  if (Array.isArray(habit.days)) {
+    // Конвертируем массив в объект с датами
+    const daysObj = {};
+    const last7Days = getLastNDays(7);
+    habit.days.forEach((done, index) => {
+      if (last7Days[index]) {
+        daysObj[last7Days[index]] = done;
+      }
+    });
+    habit.days = daysObj;
+  }
+  return habit;
+});
+
+// Функции для дат
+function getToday() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function getDateString(date) {
+  return date.toISOString().split('T')[0];
+}
+
+function getLastNDays(n) {
+  const dates = [];
+  for (let i = n - 1; i >= 0; i--) {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    dates.push(getDateString(date));
+  }
+  return dates;
+}
+
+function calculateStreak(habit) {
+  const today = getToday();
+  let streak = 0;
+  let date = new Date(today);
+  
+  while (true) {
+    const dateStr = getDateString(date);
+    if (habit.days[dateStr]) {
+      streak++;
+      date.setDate(date.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+  return streak;
+}
+
 const list = document.querySelector(".habit-list");
 const input = document.getElementById("habitInput");
 const addBtn = document.getElementById("addBtn");
 
-// рендер
+// рендер привычек
 function renderHabits() {
   list.innerHTML = "";
 
   habits.forEach((habit, index) => {
+    const last7Days = getLastNDays(7);
+    const streak = calculateStreak(habit);
+    habit.streak = streak; // обновляем streak
+
     const div = document.createElement("div");
     div.className = "habit";
+    div.dataset.index = index;
 
     div.innerHTML = `
       <div class="habit-info">
         <span class="habit-name">${habit.name}</span>
-        <span class="habit-streak">🔥 ${habit.streak} дней</span>
+        <span class="habit-streak">🔥 ${streak} дней</span>
       </div>
 
       <div class="habit-days">
-        ${habit.days.map(d => `<div class="day ${d ? "active" : ""}"></div>`).join("")}
+        ${last7Days.map(date => {
+          const isActive = habit.days[date];
+          const isToday = date === getToday();
+          return `<div class="day ${isActive ? "active" : ""} ${isToday ? "today" : ""}" data-date="${date}">${isActive ? '✔' : '✗'}</div>`;
+        }).join("")}
       </div>
 
       <button data-index="${index}" class="check-btn">✔</button>
@@ -108,7 +173,7 @@ addBtn.onclick = () => {
   habits.push({
     name,
     streak: 0,
-    days: [false, false, false, false, false]
+    days: {}
   });
 
   input.value = "";
@@ -120,14 +185,80 @@ function attachEvents() {
   document.querySelectorAll(".check-btn").forEach(btn => {
     btn.onclick = () => {
       const i = btn.dataset.index;
-
-      habits[i].days.unshift(true);
-      habits[i].days = habits[i].days.slice(0, 5);
-
-      habits[i].streak += 1;
+      const today = getToday();
+      
+      habits[i].days[today] = !habits[i].days[today]; // toggle
+      habits[i].streak = calculateStreak(habits[i]);
 
       renderHabits();
     };
+  });
+
+  // Клик по дню для отметки
+  document.querySelectorAll(".day").forEach(day => {
+    day.onclick = () => {
+      const date = day.dataset.date;
+      const habitDiv = day.closest(".habit");
+      const index = habitDiv.dataset.index;
+      
+      habits[index].days[date] = !habits[index].days[date];
+      habits[index].streak = calculateStreak(habits[index]);
+
+      renderHabits();
+    };
+  });
+
+  // Долгое нажатие для удаления привычки
+  document.querySelectorAll(".habit").forEach(habitDiv => {
+    let pressTimer;
+    
+    habitDiv.addEventListener('mousedown', startPress);
+    habitDiv.addEventListener('touchstart', startPress);
+    habitDiv.addEventListener('mouseup', cancelPress);
+    habitDiv.addEventListener('mouseleave', cancelPress);
+    habitDiv.addEventListener('touchend', cancelPress);
+
+    function startPress() {
+      pressTimer = setTimeout(() => {
+        const index = habitDiv.dataset.index;
+        if (confirm(`Удалить привычку "${habits[index].name}"?`)) {
+          habits.splice(index, 1);
+          renderHabits();
+        }
+      }, 1000); // 1 секунда
+    }
+
+    function cancelPress() {
+      clearTimeout(pressTimer);
+    }
+  });
+}
+
+// рендер прогресса
+function renderProgress() {
+  const container = document.getElementById("progress-container");
+  container.innerHTML = "";
+
+  habits.forEach(habit => {
+    const last20Days = getLastNDays(20);
+
+    const chartDiv = document.createElement("div");
+    chartDiv.className = "chart-container";
+    chartDiv.innerHTML = `
+      <h3>${habit.name}</h3>
+      <div class="progress-grid">
+        ${last20Days.map(date => {
+          const isActive = habit.days[date];
+          const d = new Date(date);
+          return `<div class="grid-day">
+            <div class="grid-date">${d.getDate()}</div>
+            <div class="grid-icon ${isActive ? 'active' : ''}">${isActive ? '✔' : '✗'}</div>
+          </div>`;
+        }).join("")}
+      </div>
+    `;
+
+    container.appendChild(chartDiv);
   });
 }
 
