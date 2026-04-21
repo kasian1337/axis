@@ -239,26 +239,65 @@ function renderProgress() {
   const container = document.getElementById("progress-container");
   container.innerHTML = "";
 
-  habits.forEach(habit => {
-    const last20Days = getLastNDays(20);
+  habits.forEach((habit, index) => {
+    const last30Days = getLastNDays(30);
+    const data = last30Days.map(date => habit.days[date] ? 1 : 0);
 
     const chartDiv = document.createElement("div");
-    chartDiv.className = "chart-container";
+    chartDiv.className = "chart-item";
     chartDiv.innerHTML = `
-      <h3>${habit.name}</h3>
-      <div class="progress-grid">
-        ${last20Days.map(date => {
-          const isActive = habit.days[date];
-          const d = new Date(date);
-          return `<div class="grid-day">
-            <div class="grid-date">${d.getDate()}</div>
-            <div class="grid-icon ${isActive ? 'active' : ''}">${isActive ? '✔' : '✗'}</div>
-          </div>`;
-        }).join("")}
-      </div>
+      <h4>${habit.name}</h4>
+      <canvas id="chart-${index}"></canvas>
     `;
 
     container.appendChild(chartDiv);
+
+    const ctx = document.getElementById(`chart-${index}`).getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: last30Days.map(date => {
+          const d = new Date(date);
+          return `${d.getDate()}.${d.getMonth() + 1}`;
+        }),
+        datasets: [{
+          label: 'Выполнено',
+          data: data,
+          borderColor: 'rgba(59, 130, 246, 1)',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          tension: 0.1,
+          pointRadius: 2,
+          pointHoverRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        aspectRatio: 2,
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 1,
+            ticks: {
+              stepSize: 1,
+              callback: function(value) {
+                return value === 1 ? 'Да' : 'Нет';
+              }
+            }
+          },
+          x: {
+            ticks: {
+              maxTicksLimit: 10
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            display: false
+          }
+        }
+      }
+    });
   });
 }
 

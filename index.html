@@ -5,6 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Deep Work</title>
         <script src="https://telegram.org/js/telegram-web-app.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <link rel="stylesheet" href="styles.css">
     </head>
     <body>
@@ -19,6 +20,10 @@
         <div id="habits-page" class="page">
             <div class="container">
                 <h1>Привычки</h1>
+                <div class="add-habit">
+                    <input id="habitInput" placeholder="Новая привычка">
+                    <button id="addBtn">Добавить</button>
+                </div>
                 <div class="habit-list">
                     <div class="habit">
                         <div class="habit-info">
@@ -49,10 +54,6 @@
                         <button class="check-btn">✔</button>
                     </div>
                 </div>
-            </div>
-            <div class="add-habit">
-                <input id="habitInput" placeholder="Новая привычка">
-                <button id="addBtn">Добавить</button>
             </div>
         </div>
         <div id="progress-page" class="page">
