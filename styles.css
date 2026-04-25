@@ -2,144 +2,150 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  -moz-user-select: none;
-  -webkit-user-select: none;
-  -ms-user-select: none;
   user-select: none;
 }
 
 body {
-  margin: 0;
   background: #0f172a;
   color: #e2e8f0;
-  font-family: Arial, sans-serif;
+  font-family: Arial;
 }
 
 .container {
   text-align: center;
-  margin-top: 80px;
+  margin-top: 60px;
   padding-bottom: 100px;
 }
 
-h1 {
-  margin-bottom: 30px;
-}
-
-.timer-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 30px;
-  margin-top: 40px;
-}
-
 .timer {
-  display: inline-block;
-  padding: 80px 50px;
-  border-radius: 30px;
-  font-size: 56px;
-  font-weight: bold;
+  font-size: 48px;
+  padding: 40px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.1);
   cursor: pointer;
-  transition: all 0.3s ease;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-  color: #e2e8f0;
-}
-
-.timer:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.5);
-}
-
-.timer:active {
-  transform: scale(0.98);
 }
 
 .status {
-  font-size: 16px;
-  opacity: 0.8;
-  padding: 12px 20px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 20px;
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  margin-top: 10px;
+  opacity: 0.7;
 }
 
 .nav {
   position: fixed;
   bottom: 0;
-  left: 0;
-  right: 0;
+  width: 100%;
   display: flex;
   justify-content: center;
   gap: 10px;
-  padding: 15px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
+  padding: 10px;
+  background: rgba(255,255,255,0.1);
 }
 
 .nav-btn {
-  padding: 10px 25px;
-  margin: 0;
+  padding: 10px 20px;
+  border-radius: 15px;
   border: none;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #e2e8f0;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 14px;
-  font-weight: 500;
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
-}
-
-.nav-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255,255,255,0.1);
+  color: white;
 }
 
 .nav-btn.active {
-  background: rgba(59, 130, 246, 0.4);
-  border: 1px solid rgba(59, 130, 246, 0.6);
-  box-shadow: 0 8px 32px 0 rgba(59, 130, 246, 0.3);
+  background: #3b82f6;
 }
 
-.page {
-  display: none;
-}
+.page { display: none; }
+.page.active { display: block; }
 
-.page.active {
-  display: block;
-}
-
+/* HABITS */
 .habit {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  padding: 15px;
-  border-radius: 20px;
-  margin-bottom: 15px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
-  transition: all 0.3s ease;
+  margin: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.1);
+}/* ================= GLOBAL ================= */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  user-select: none;
 }
 
-.habit:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+body {
+  background: linear-gradient(180deg, #0f172a, #020617);
+  color: #e2e8f0;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ================= CONTAINER ================= */
+.container {
+  text-align: center;
+  margin-top: 40px;
+  padding: 15px;
+  padding-bottom: 120px;
+}
+
+/* ================= TIMER ================= */
+.timer {
+  padding: 60px 40px;
+  font-size: 48px;
+  border-radius: 25px;
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.15);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+  transition: 0.3s;
+}
+
+.timer:active {
+  transform: scale(0.97);
+}
+
+.status {
+  margin-top: 15px;
+  opacity: 0.7;
+}
+
+/* ================= NAV ================= */
+.nav {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  padding: 12px;
+  backdrop-filter: blur(20px);
+  background: rgba(0,0,0,0.4);
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.nav-btn {
+  flex: 1;
+  margin: 0 5px;
+  padding: 10px;
+  border-radius: 15px;
+  border: none;
+  color: #cbd5f5;
+  background: rgba(255,255,255,0.05);
+  transition: 0.3s;
+}
+
+.nav-btn.active {
+  background: rgba(59,130,246,0.4);
+  color: white;
+}
+
+/* ================= PAGES ================= */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ================= HABITS ================= */
+.habit {
+  padding: 15px;
+  margin-bottom: 12px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255,255,255,0.15);
 }
 
 .habit-info {
@@ -148,207 +154,133 @@ h1 {
   margin-bottom: 10px;
 }
 
-.habit-name {
-  font-size: 18px;
-}
-
-.habit-streak {
-  font-size: 14px;
-  opacity: 0.7;
-}
-
 .habit-days {
   display: flex;
   gap: 6px;
-  margin-bottom: 10px;
+  justify-content: center;
 }
 
 .day {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  color: #e2e8f0;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px 0 rgba(31, 38, 135, 0.1);
-}
-
-.day:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.08);
+  transition: 0.2s;
 }
 
 .day.active {
-  background: rgba(34, 197, 94, 0.6);
-  border: 1px solid rgba(34, 197, 94, 0.8);
-  color: white;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  box-shadow: 0 0 6px rgba(34,197,94,0.6);
 }
 
-.day.today {
-  border: 2px solid #3b82f6;
-}
-
-.check-btn {
-  width: 100%;
-  padding: 10px;
-  border: none;
-  border-radius: 12px;
-  background: rgba(59, 130, 246, 0.6);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  color: white;
-  font-size: 16px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: 1px solid rgba(59, 130, 246, 0.8);
-}
-
-.check-btn:hover {
-  background: rgba(59, 130, 246, 0.8);
-  box-shadow: 0 8px 32px 0 rgba(59, 130, 246, 0.3);
-}
-
-.add-habit {
-  display: flex;
-  gap: 10px;
-  margin: 20px;
-}
-
-.add-habit input {
-  flex: 1;
-  padding: 10px 15px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  color: #e2e8f0;
-  outline: none;
-  transition: all 0.3s ease;
-}
-
-.add-habit input:focus {
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  background: rgba(255, 255, 255, 0.15);
-}
-
-.add-habit input::placeholder {
-  color: rgba(226, 232, 240, 0.6);
-}
-
-.add-habit button {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 12px;
-  background: rgba(34, 197, 94, 0.6);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  color: white;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: 1px solid rgba(34, 197, 94, 0.8);
-  font-weight: 500;
-}
-
-.add-habit button:hover {
-  background: rgba(34, 197, 94, 0.8);
-  box-shadow: 0 8px 32px 0 rgba(34, 197, 94, 0.3);
-}
-
-#progress-container {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  grid-template-rows: repeat(4, 1fr);
-  grid-column-gap: 15px;
-  grid-row-gap: 15px;
-  padding: 20px;
-}
-
-.chart-item {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  padding: 15px;
-  border-radius: 15px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+/* ================= SKILL TREE ================= */
+#skill-tree {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  gap: 50px;
+  margin-top: 20px;
 }
 
-.chart-item h4 {
-  margin: 0 0 10px 0;
+/* узел */
+.skill-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+/* карточка */
+.skill-card {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(20px);
+  border: 2px solid rgba(255,255,255,0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: 0.3s;
+  position: relative;
+}
+
+/* glow эффект */
+.skill-card::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(59,130,246,0.3), transparent);
+  opacity: 0;
+  transition: 0.3s;
+}
+
+.skill-card:hover::before {
+  opacity: 1;
+}
+
+.skill-card:hover {
+  transform: scale(1.08);
+  border-color: rgba(59,130,246,0.5);
+}
+
+/* input */
+.skill-card input {
+  width: 70%;
+  background: transparent;
+  border: none;
   color: #e2e8f0;
   text-align: center;
+  font-size: 13px;
+}
+
+/* кнопки */
+.skill-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.skill-actions button {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
   font-size: 14px;
-  font-weight: 500;
+  cursor: pointer;
+  transition: 0.2s;
 }
 
-.chart-item canvas {
-  flex: 1;
-  min-height: 120px;
-  max-height: 150px;
-  width: 100% !important;
+.skill-actions .add {
+  background: rgba(59,130,246,0.6);
 }
 
-@media (max-width: 768px) {
-  .container {
-    margin-top: 20px;
-    padding: 10px;
-    padding-bottom: 120px;
-  }
+.skill-actions .add:hover {
+  background: rgba(59,130,246,1);
+  transform: scale(1.1);
+}
 
-  h1 {
-    margin-bottom: 15px;
-    font-size: 24px;
-  }
+.skill-actions .del {
+  background: rgba(255,255,255,0.1);
+}
 
-  .timer-card {
-    gap: 20px;
-  }
+/* ================= MOBILE ================= */
+@media (max-width: 480px) {
 
   .timer {
-    padding: 40px 30px;
-    font-size: 42px;
-    border-radius: 25px;
+    font-size: 36px;
+    padding: 40px 20px;
   }
 
-  .status {
-    font-size: 14px;
-    padding: 10px 15px;
-    border-radius: 15px;
+  .skill-card {
+    width: 90px;
+    height: 90px;
   }
 
-  .nav {
-    margin: 10px 0;
-    gap: 5px;
-  }
-
-  .nav-btn {
-    padding: 8px 18px;
-    font-size: 13px;
-    border-radius: 15px;
-  }
-
-  .habit {
-    padding: 12px;
-    border-radius: 15px;
-  }
-
-  .habit-name {
-    font-size: 16px;
-  }
-
-  .habit-streak {
-    font-size: 12px;
+  .skill-card input {
+    font-size: 11px;
   }
 
   .day {
@@ -356,53 +288,39 @@ h1 {
     height: 18px;
   }
 
-  .check-btn {
-    padding: 8px;
-    font-size: 14px;
-    border-radius: 10px;
-  }
+}
 
-  .add-habit {
-    flex-direction: column;
-    gap: 10px;
-    margin: 15px;
-  }
+.habit-days {
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+}
 
-  .add-habit input {
-    padding: 10px 12px;
-    font-size: 14px;
-  }
+.day {
+  width: 20px;
+  height: 20px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 5px;
+}
 
-  .add-habit button {
-    padding: 10px 15px;
-    font-size: 14px;
-    border-radius: 10px;
-  }
+.day.active {
+  background: #22c55e;
+}
 
-  .chart-container {
-    padding: 15px;
-    border-radius: 15px;
-  }
+/* SKILL TREE */
+.skill-node {
+  margin: 10px;
+}
 
-  #progress-container {
-    grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: auto;
-    grid-column-gap: 10px;
-    grid-row-gap: 10px;
-    padding: 10px;
-  }
+.skill-card {
+  padding: 10px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 10px;
+}
 
-  .chart-item {
-    padding: 10px;
-  }
-
-  .chart-item h4 {
-    font-size: 12px;
-  }
-
-  .chart-item canvas {
-    min-height: 100px;
-    max-height: 120px;
-  }
-
+.skill-card input {
+  background: transparent;
+  border: none;
+  color: white;
+  text-align: center;
 }

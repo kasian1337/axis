@@ -24,48 +24,42 @@
                     <input id="habitInput" placeholder="Новая привычка">
                     <button id="addBtn">Добавить</button>
                 </div>
-                <div class="habit-list">
-                    <div class="habit">
-                        <div class="habit-info">
-                            <span class="habit-name">Тренировка</span>
-                            <span class="habit-streak">🔥 3 дня</span>
+                <div class="habit-list" id="habitList"></div>
+                <div class="habit-stats" id="habitStats" style="display: none;">
+                    <button class="back-btn" id="backToHabits">← Назад</button>
+                    <h2 id="statsHabitName"></h2>
+                    <div class="stats-summary">
+                        <div class="stat-box">
+                            <span class="stat-value" id="currentStreak">0</span>
+                            <span class="stat-label">Текущая серия</span>
                         </div>
-                        <div class="habit-days">
-                            <div class="day active"></div>
-                            <div class="day active"></div>
-                            <div class="day"></div>
-                            <div class="day"></div>
-                            <div class="day"></div>
+                        <div class="stat-box">
+                            <span class="stat-value" id="bestStreak">0</span>
+                            <span class="stat-label">Лучшая серия</span>
                         </div>
-                        <button class="check-btn">✔</button>
+                        <div class="stat-box">
+                            <span class="stat-value" id="totalDays">0</span>
+                            <span class="stat-label">Всего дней</span>
+                        </div>
                     </div>
-                    <div class="habit">
-                        <div class="habit-info">
-                            <span class="habit-name">Английский</span>
-                            <span class="habit-streak">🔥 5 дней</span>
-                        </div>
-                        <div class="habit-days">
-                            <div class="day active"></div>
-                            <div class="day active"></div>
-                            <div class="day active"></div>
-                            <div class="day"></div>
-                            <div class="day"></div>
-                        </div>
-                        <button class="check-btn">✔</button>
-                    </div>
+                    <h3>За последние 30 дней</h3>
+                    <canvas id="progressChart"></canvas>
                 </div>
             </div>
         </div>
-        <div id="progress-page" class="page">
+        
+        <div id="skill-page" class="page">
             <div class="container">
-                <h1>Прогресс</h1>
-                <div id="progress-container"></div>
+                <h1>Разбивка навыка</h1>
+                <button id="addRootSkill" class="add-root-btn">+ Добавить корень</button>
+                <div id="skill-tree"></div>
             </div>
         </div>
+        
         <nav class="nav">
             <button class="nav-btn active" data-page="timer">Таймер</button>
             <button class="nav-btn" data-page="habits">Привычки</button>
-            <button class="nav-btn" data-page="progress">Прогресс</button>
+            <button class="nav-btn" data-page="skill">Навыки</button>
         </nav>
         <script src="script.js"></script>
     </body>
