@@ -159,7 +159,10 @@ addBtn.onclick = () => {
   const name = input.value.trim();
   if (!name) return;
 
-  habits.push({ name, days: {} });
+  habits.push({
+    name,
+    days: {}
+  });
   input.value = "";
   renderHabits();
 };
@@ -203,69 +206,226 @@ function attachHabitEvents() {
 renderHabits();
 
 // ===================== SKILL TREE =====================
-let skillTree = JSON.parse(localStorage.getItem("skillTree")) || [];
-let idCounter = skillTree.length ? Math.max(...skillTree.map(s => s.id)) + 1 : 1;
+const nodeArea = document.getElementById("skill-canvas");
+const svg = document.getElementById("connections-svg");
+const rootButton = document.getElementById("addRootSkill");
 
-function saveSkillTree() {
-  localStorage.setItem("skillTree", JSON.stringify(skillTree));
+let nodes = [];
+let connections = [];
+let nodeCounter = 1;
+const minNodeDistance = 140;
+
+function addRootNode() {
+  const existingRoots = nodes.filter(node => node.parentId === null).length;
+  const areaWidth = nodeArea.clientWidth ? nodeArea.clientWidth : 800;
+  const x = Math.max(24, areaWidth / 2 - 85 + existingRoots * 180);
+
+  const root = {
+    id: nodeCounter++,
+    label: "Навык",
+    color: "yellow",
+    x,
+    y: 40,
+    parentId: null,
+  };
+
+  nodes.push(root);
+  createNode(root);
+  updateConnections();
 }
 
-function renderSkillTree() {
-  const container = document.getElementById("skill-tree");
-  container.innerHTML = "";
+function addChildNode(parentId) {
+  const source = nodes.find(node => node.id === parentId);
+  if (!source) return;
 
-  skillTree.forEach(skill => {
-    if (!skill.parent) {
-      container.appendChild(createNode(skill));
-    }
+  const sameLevelCount = nodes.filter(node => node.parentId === source.parentId).length;
+  const x = Math.max(24, source.x + (sameLevelCount - 1) * 80);
+  const y = source.y + 210;
+
+  const sibling = {
+    id: nodeCounter++,
+    label: "Навык",
+    color: source.color,
+    x,
+    y,
+    parentId: source.parentId,
+  };
+
+  nodes.push(sibling);
+  createNode(sibling);
+  connectNodes(source.id, sibling.id);
+  updateConnections();
+}
+
+function createNode(node) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "node-wrapper";
+  wrapper.dataset.id = node.id;
+  wrapper.style.left = `${node.x}px`;
+  wrapper.style.top = `${node.y}px`;
+
+  wrapper.innerHTML = `
+    <div class="node-card">
+      <div class="node-circle ${node.color}">?</div>
+      <button class="node-add" title="Добавить ещё один узел">+</button>
+    </div>
+    <input class="node-label-input" placeholder="Название навыка" value="${node.label}">
+  `;
+
+  nodeArea.appendChild(wrapper);
+  window.requestAnimationFrame(() => wrapper.classList.add("visible"));
+
+  const labelInput = wrapper.querySelector(".node-label-input");
+  labelInput.addEventListener("input", function (event) {
+    node.label = event.target.value;
+  });
+
+  wrapper.querySelector(".node-add").addEventListener("click", function (event) {
+    event.stopPropagation();
+    addChildNode(node.id);
+  });
+
+  makeDraggable(wrapper, node.id);
+}
+
+function connectNodes(fromId, toId) {
+  const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  line.classList.add("connection-line");
+  line.dataset.from = fromId;
+  line.dataset.to = toId;
+
+  const source = nodes.find(function (node) {
+    return node.id === fromId;
+  });
+  line.setAttribute("stroke", source && source.color === "blue" ? "#00e5ff" : "#ffd54f");
+  svg.appendChild(line);
+
+  connections.push({
+    from: fromId,
+    to: toId,
+    line: line
+  });
+  updateConnections();
+}
+
+function updateConnections() {
+  const areaRect = nodeArea.getBoundingClientRect();
+  svg.setAttribute("width", areaRect.width);
+  svg.setAttribute("height", areaRect.height);
+
+  connections.forEach(function (connection) {
+    const fromWrapper = nodeArea.querySelector(`[data-id='${connection.from}']`);
+    const toWrapper = nodeArea.querySelector(`[data-id='${connection.to}']`);
+    if (!fromWrapper || !toWrapper) return;
+
+    const fromCircle = fromWrapper.querySelector('.node-circle');
+    const toCircle = toWrapper.querySelector('.node-circle');
+    if (!fromCircle || !toCircle) return;
+
+    const fromRect = fromCircle.getBoundingClientRect();
+    const toRect = toCircle.getBoundingClientRect();
+    const fromCX = fromRect.left - areaRect.left + fromRect.width / 2;
+    const fromCY = fromRect.top - areaRect.top + fromRect.height / 2;
+    const toCX = toRect.left - areaRect.left + toRect.width / 2;
+    const toCY = toRect.top - areaRect.top + toRect.height / 2;
+
+    const dx = toCX - fromCX;
+    const dy = toCY - fromCY;
+    const distance = Math.hypot(dx, dy) || 1;
+    const fromRadius = fromRect.width / 2;
+    const toRadius = toRect.width / 2;
+    const x1 = fromCX + (dx / distance) * fromRadius;
+    const y1 = fromCY + (dy / distance) * fromRadius;
+    const x2 = toCX - (dx / distance) * toRadius;
+    const y2 = toCY - (dy / distance) * toRadius;
+
+    connection.line.setAttribute("x1", x1);
+    connection.line.setAttribute("y1", y1);
+    connection.line.setAttribute("x2", x2);
+    connection.line.setAttribute("y2", y2);
   });
 }
 
-function createNode(skill) {
-  const div = document.createElement("div");
-  div.className = "skill-node";
-
-  div.innerHTML = `
-    <div class="skill-card">
-      <input value="${skill.name || ""}">
-      <button class="add">+</button>
-      <button class="del">—</button>
-    </div>
-  `;
-
-  div.querySelector("input").oninput = e => {
-    skill.name = e.target.value;
-    saveSkillTree();
-  };
-
-  div.querySelector(".add").onclick = () => {
-    const child = { id: idCounter++, name: "", parent: skill.id };
-    skillTree.push(child);
-    saveSkillTree();
-    renderSkillTree();
-  };
-
-  div.querySelector(".del").onclick = () => {
-    deleteSkill(skill.id);
-  };
-
-  skillTree
-    .filter(s => s.parent === skill.id)
-    .forEach(child => div.appendChild(createNode(child)));
-
-  return div;
+function getNodeById(id) {
+  return nodes.find(function (node) {
+    return node.id === id;
+  });
 }
 
-function deleteSkill(id) {
-  skillTree = skillTree.filter(s => s.id !== id && s.parent !== id);
-  saveSkillTree();
-  renderSkillTree();
+function makeDraggable(wrapper, nodeId) {
+  wrapper.style.touchAction = "none";
+
+  let startX = 0;
+  let startY = 0;
+  let initialX = 0;
+  let initialY = 0;
+  let dragging = false;
+
+  function onPointerMove(event) {
+    if (!dragging) return;
+    const clientX = event.clientX;
+    const clientY = event.clientY;
+    const dx = clientX - startX;
+    const dy = clientY - startY;
+    const areaRect = nodeArea.getBoundingClientRect();
+    let newX = initialX + dx;
+    let newY = initialY + dy;
+
+    newX = Math.max(0, Math.min(newX, areaRect.width - wrapper.offsetWidth));
+    newY = Math.max(0, Math.min(newY, areaRect.height - wrapper.offsetHeight));
+
+    const centerX = newX + wrapper.offsetWidth / 2;
+    const centerY = newY + wrapper.offsetHeight / 2;
+
+    const collides = nodes.some(function (other) {
+      if (other.id === nodeId) return false;
+      const otherCenterX = other.x + wrapper.offsetWidth / 2;
+      const otherCenterY = other.y + wrapper.offsetHeight / 2;
+      return Math.hypot(otherCenterX - centerX, otherCenterY - centerY) < minNodeDistance;
+    });
+
+    if (!collides) {
+      wrapper.style.left = `${newX}px`;
+      wrapper.style.top = `${newY}px`;
+      const node = getNodeById(nodeId);
+      if (node) {
+        node.x = newX;
+        node.y = newY;
+      }
+      updateConnections();
+    }
+  }
+
+  function endDrag(event) {
+    dragging = false;
+
+    try {
+      wrapper.releasePointerCapture(event.pointerId);
+    } catch (e) {}
+
+    document.removeEventListener("pointermove", onPointerMove);
+    document.removeEventListener("pointerup", endDrag);
+    document.removeEventListener("pointercancel", endDrag);
+  }
+
+  wrapper.addEventListener("pointerdown", function (event) {
+    if (event.button !== 0) return;
+    if (event.target.closest(".node-label-input, .node-add")) return;
+    event.preventDefault();
+    dragging = true;
+    const areaRect = nodeArea.getBoundingClientRect();
+    const wrapperRect = wrapper.getBoundingClientRect();
+    startX = event.clientX;
+    startY = event.clientY;
+    initialX = wrapperRect.left - areaRect.left;
+    initialY = wrapperRect.top - areaRect.top;
+    wrapper.setPointerCapture(event.pointerId);
+    document.addEventListener("pointermove", onPointerMove);
+    document.addEventListener("pointerup", endDrag);
+    document.addEventListener("pointercancel", endDrag);
+  });
 }
 
-document.getElementById("addRootSkill").onclick = () => {
-  skillTree.push({ id: idCounter++, name: "", parent: null });
-  saveSkillTree();
-  renderSkillTree();
-};
-
-renderSkillTree();
+rootButton.addEventListener("click", addRootNode);
+window.addEventListener("resize", updateConnections);
+addRootNode();
