@@ -218,7 +218,10 @@ const minNodeDistance = 140;
 function addRootNode() {
   const existingRoots = nodes.filter(node => node.parentId === null).length;
   const areaWidth = nodeArea.clientWidth ? nodeArea.clientWidth : 800;
-  const x = Math.max(24, areaWidth / 2 - 85 + existingRoots * 180);
+  
+  // Для первого узла - максимально влево с небольшим отступом
+  // Для остальных - распределять с интервалом 200px
+  const x = existingRoots === 0 ? 20 : 20 + existingRoots * 200;
 
   const root = {
     id: nodeCounter++,
@@ -239,7 +242,7 @@ function addChildNode(parentId) {
   if (!source) return;
 
   const sameLevelCount = nodes.filter(node => node.parentId === source.parentId).length;
-  const x = Math.max(24, source.x + (sameLevelCount - 1) * 80);
+  const x = Math.max(20, source.x + (sameLevelCount - 1) * 100);
   const y = source.y + 210;
 
   const sibling = {
@@ -257,6 +260,33 @@ function addChildNode(parentId) {
   updateConnections();
 }
 
+function deleteNode(nodeId) {
+  // Найти всех детей этого узла и удалить их рекурсивно
+  const children = nodes.filter(node => node.parentId === nodeId);
+  children.forEach(child => deleteNode(child.id));
+
+  // Удалить сам узел из массива
+  nodes = nodes.filter(node => node.id !== nodeId);
+
+  // Удалить все связи, связанные с этим узлом
+  connections = connections.filter(conn => {
+    if (conn.from === nodeId || conn.to === nodeId) {
+      conn.line.remove();
+      return false;
+    }
+    return true;
+  });
+
+  // Удалить DOM элемент узла
+  const wrapper = nodeArea.querySelector(`[data-id='${nodeId}']`);
+  if (wrapper) {
+    wrapper.classList.remove("visible");
+    setTimeout(() => wrapper.remove(), 250);
+  }
+
+  updateConnections();
+}
+
 function createNode(node) {
   const wrapper = document.createElement("div");
   wrapper.className = "node-wrapper";
@@ -268,6 +298,7 @@ function createNode(node) {
     <div class="node-card">
       <div class="node-circle ${node.color}">?</div>
       <button class="node-add" title="Добавить ещё один узел">+</button>
+      <button class="node-del" title="Удалить узел">−</button>
     </div>
     <input class="node-label-input" placeholder="Название навыка" value="${node.label}">
   `;
@@ -283,6 +314,11 @@ function createNode(node) {
   wrapper.querySelector(".node-add").addEventListener("click", function (event) {
     event.stopPropagation();
     addChildNode(node.id);
+  });
+
+  wrapper.querySelector(".node-del").addEventListener("click", function (event) {
+    event.stopPropagation();
+    deleteNode(node.id);
   });
 
   makeDraggable(wrapper, node.id);
@@ -409,8 +445,9 @@ function makeDraggable(wrapper, nodeId) {
   }
 
   wrapper.addEventListener("pointerdown", function (event) {
-    if (event.button !== 0) return;
-    if (event.target.closest(".node-label-input, .node-add")) return;
+    // Пропустить, если это не первая кнопка мыши (игнорируем для touch events)
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    if (event.target.closest(".node-label-input, .node-add, .node-del")) return;
     event.preventDefault();
     dragging = true;
     const areaRect = nodeArea.getBoundingClientRect();

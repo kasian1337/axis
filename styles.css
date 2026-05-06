@@ -40,6 +40,7 @@ body {
   gap: 10px;
   padding: 10px;
   background: rgba(255,255,255,0.1);
+  z-index: 100;
 }
 
 .nav-btn {
@@ -411,7 +412,8 @@ body {
   border-radius: 28px;
   border: 1px solid rgba(255,255,255,0.12);
   background: rgba(255,255,255,0.03);
-  overflow: hidden;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
   box-shadow: inset 0 0 50px rgba(255,255,255,0.03), 0 0 80px rgba(0,0,0,0.4);
 }
 
@@ -433,12 +435,14 @@ body {
   height: 100%;
   overflow: visible;
   pointer-events: none;
+  z-index: 1;
 }
 
 #node-area {
   position: relative;
   width: 100%;
   height: 100%;
+  z-index: 2;
 }
 
 .node-wrapper {
@@ -448,6 +452,10 @@ body {
   transform: translateY(10px);
   transition: opacity 0.25s ease, transform 0.25s ease;
   cursor: grab;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  z-index: 5;
 }
 
 .node-wrapper.visible {
@@ -464,6 +472,7 @@ body {
   width: 140px;
   height: 140px;
   margin: 0 auto;
+  z-index: 1;
 }
 
 .node-circle {
@@ -507,11 +516,39 @@ body {
   box-shadow: 0 0 18px rgba(0,229,255,0.45);
   cursor: pointer;
   transition: transform 0.2s ease, background 0.2s ease;
+  touch-action: manipulation;
 }
 
 .node-add:hover {
   transform: translateY(-50%) scale(1.05);
   background: #7af7ff;
+}
+
+.node-del {
+  position: absolute;
+  left: -14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: 700;
+  box-shadow: 0 0 18px rgba(239,68,68,0.45);
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+  touch-action: manipulation;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.node-del:hover {
+  transform: translateY(-50%) scale(1.05);
+  background: #dc2626;
 }
 
 .node-label-input {
@@ -523,9 +560,10 @@ body {
   border: 1px solid rgba(255,255,255,0.16);
   background: rgba(255,255,255,0.08);
   color: #f8fafc;
-  font-size: 14px;
   text-align: center;
   outline: none;
+  position: relative;
+  z-index: 10;
 }
 
 .node-label-input:focus {
@@ -552,29 +590,184 @@ body {
   transition: stroke 0.2s ease;
 }
 
-@media (max-width: 720px) {
+/* Мобильные устройства (< 480px) */
+@media (max-width: 480px) {
   #skill-canvas {
-    min-height: 540px;
+    min-height: 600px;
+    border-radius: 16px;
+    margin: 10px;
+  }
+
+  .add-root-btn {
+    font-size: 13px;
+    padding: 10px 14px;
   }
 
   .node-wrapper {
-    width: 140px;
+    width: 100px;
   }
 
   .node-card {
-    width: 120px;
-    height: 120px;
+    width: 80px;
+    height: 80px;
   }
 
   .node-circle {
-    width: 120px;
-    height: 120px;
-    font-size: 38px;
+    width: 80px;
+    height: 80px;
+    font-size: 28px;
+    border: 2px solid;
   }
 
   .node-add {
-    width: 30px;
-    height: 30px;
-    right: -12px;
+    width: 26px;
+    height: 26px;
+    right: -10px;
+    font-size: 18px;
+  }
+
+  .node-del {
+    width: 26px;
+    height: 26px;
+    left: -10px;
+    font-size: 18px;
+  }
+
+  .node-label-input,
+  .node-label {
+    width: 85px;
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+}
+
+/* Планшеты и среднии экраны (480px - 768px) */
+@media (min-width: 481px) and (max-width: 768px) {
+  #skill-canvas {
+    min-height: 580px;
+  }
+
+  .node-wrapper {
+    width: 130px;
+  }
+
+  .node-card {
+    width: 110px;
+    height: 110px;
+  }
+
+  .node-circle {
+    width: 110px;
+    height: 110px;
+    font-size: 36px;
+    border: 2px solid;
+  }
+
+  .node-add {
+    width: 28px;
+    height: 28px;
+    right: -11px;
+    font-size: 20px;
+  }
+
+  .node-del {
+    width: 28px;
+    height: 28px;
+    left: -11px;
+    font-size: 20px;
+  }
+
+  .node-label-input,
+  .node-label {
+    width: 120px;
+    font-size: 13px;
+    padding: 9px 12px;
+  }
+}
+
+/* Большие экраны (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  #skill-canvas {
+    min-height: 600px;
+  }
+
+  .node-wrapper {
+    width: 150px;
+  }
+
+  .node-card {
+    width: 130px;
+    height: 130px;
+  }
+
+  .node-circle {
+    width: 130px;
+    height: 130px;
+    font-size: 42px;
+    border: 3px solid;
+  }
+
+  .node-add {
+    width: 32px;
+    height: 32px;
+    right: -13px;
+    font-size: 22px;
+  }
+
+  .node-del {
+    width: 32px;
+    height: 32px;
+    left: -13px;
+    font-size: 22px;
+  }
+
+  .node-label-input,
+  .node-label {
+    width: 140px;
+    font-size: 14px;
+    padding: 9px 14px;
+  }
+}
+
+/* Очень большие экраны (> 1024px) */
+@media (min-width: 1025px) {
+  #skill-canvas {
+    min-height: 700px;
+  }
+
+  .node-wrapper {
+    width: 170px;
+  }
+
+  .node-card {
+    width: 140px;
+    height: 140px;
+  }
+
+  .node-circle {
+    width: 140px;
+    height: 140px;
+    font-size: 46px;
+    border: 3px solid;
+  }
+
+  .node-add {
+    width: 36px;
+    height: 36px;
+    right: -14px;
+    font-size: 24px;
+  }
+
+  .node-del {
+    width: 36px;
+    height: 36px;
+    left: -14px;
+    font-size: 24px;
+  }
+
+  .node-label-input,
+  .node-label {
+    width: 140px;
+    font-size: 14px;
   }
 }
