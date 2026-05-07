@@ -466,6 +466,19 @@ function makeDraggable(wrapper, nodeId) {
   let initialX = 0;
   let initialY = 0;
   let dragging = false;
+  let touchTimer = null;
+  let touchStartX = 0;
+  let touchStartY = 0;
+
+  function cancelTouchStart() {
+    if (touchTimer) {
+      clearTimeout(touchTimer);
+      touchTimer = null;
+    }
+    wrapper.removeEventListener("pointermove", onTouchMoveBeforeDrag);
+    wrapper.removeEventListener("pointerup", cancelTouchStart);
+    wrapper.removeEventListener("pointercancel", cancelTouchStart);
+  }
 
   function onPointerMove(event) {
     if (!dragging) return;
@@ -504,6 +517,7 @@ function makeDraggable(wrapper, nodeId) {
 
   function endDrag(event) {
     dragging = false;
+    cancelTouchStart();
 
     try {
       wrapper.releasePointerCapture(event.pointerId);
@@ -514,20 +528,59 @@ function makeDraggable(wrapper, nodeId) {
     document.removeEventListener("pointercancel", endDrag);
   }
 
+  function onTouchMoveBeforeDrag(event) {
+    const dx = Math.abs(event.clientX - touchStartX);
+    const dy = Math.abs(event.clientY - touchStartY);
+    if (dx > 10 || dy > 10) {
+      cancelTouchStart();
+      wrapper.removeEventListener("pointermove", onTouchMoveBeforeDrag);
+      wrapper.removeEventListener("pointerup", cancelTouchStart);
+      wrapper.removeEventListener("pointercancel", cancelTouchStart);
+    }
+  }
+
   wrapper.addEventListener("pointerdown", function (event) {
-    // Пропустить, если это не первая кнопка мыши (игнорируем для touch events)
-    if (event.pointerType === "touch") return;
     if (event.pointerType === "mouse" && event.button !== 0) return;
     if (event.target.closest(".node-label-input, .node-add, .node-del")) return;
-    event.preventDefault();
-    dragging = true;
+
     const areaRect = nodeArea.getBoundingClientRect();
     const wrapperRect = wrapper.getBoundingClientRect();
+
+    if (event.pointerType === "touch") {
+      touchStartX = event.clientX;
+      touchStartY = event.clientY;
+      touchTimer = setTimeout(() => {
+        touchTimer = null;
+        wrapper.removeEventListener("pointermove", onTouchMoveBeforeDrag);
+        wrapper.removeEventListener("pointerup", cancelTouchStart);
+        wrapper.removeEventListener("pointercancel", cancelTouchStart);
+        dragging = true;
+        startX = event.clientX;
+        startY = event.clientY;
+        initialX = (wrapperRect.left - areaRect.left) / scale;
+        initialY = (wrapperRect.top - areaRect.top) / scale;
+        try {
+          wrapper.setPointerCapture(event.pointerId);
+        } catch (e) {}
+        document.addEventListener("pointermove", onPointerMove);
+        document.addEventListener("pointerup", endDrag);
+        document.addEventListener("pointercancel", endDrag);
+      }, 300);
+      wrapper.addEventListener("pointermove", onTouchMoveBeforeDrag);
+      wrapper.addEventListener("pointerup", cancelTouchStart);
+      wrapper.addEventListener("pointercancel", cancelTouchStart);
+      return;
+    }
+
+    event.preventDefault();
+    dragging = true;
     startX = event.clientX;
     startY = event.clientY;
     initialX = (wrapperRect.left - areaRect.left) / scale;
     initialY = (wrapperRect.top - areaRect.top) / scale;
-    wrapper.setPointerCapture(event.pointerId);
+    try {
+      wrapper.setPointerCapture(event.pointerId);
+    } catch (e) {}
     document.addEventListener("pointermove", onPointerMove);
     document.addEventListener("pointerup", endDrag);
     document.addEventListener("pointercancel", endDrag);
