@@ -207,7 +207,8 @@ renderHabits();
 
 // ===================== SKILL TREE =====================
 const skillCanvas = document.getElementById("skill-canvas");
-const nodeArea = skillCanvas;
+const skillZoom = document.getElementById("skill-zoom");
+const nodeArea = document.getElementById("node-area");
 const svg = document.getElementById("connections-svg");
 const rootButton = document.getElementById("addRootSkill");
 
@@ -225,7 +226,7 @@ let pinchStartScale = 1;
 
 function setZoom(newScale) {
   scale = Math.min(maxScale, Math.max(minScale, newScale));
-  skillCanvas.style.transform = `scale(${scale})`;
+  skillZoom.style.transform = `scale(${scale})`;
   updateConnections();
 }
 
@@ -233,7 +234,7 @@ function getDistance(p1, p2) {
   return Math.hypot(p2.x - p1.x, p2.y - p1.y);
 }
 
-skillCanvas.style.transformOrigin = "0 0";
+skillZoom.style.transformOrigin = "0 0";
 
 skillCanvas.addEventListener("wheel", function(event) {
   if (!event.deltaY) return;
