@@ -415,35 +415,31 @@ function connectNodes(fromId, toId) {
 }
 
 function updateConnections() {
-  const areaRect = nodeArea.getBoundingClientRect();
-  svg.setAttribute("width", areaRect.width);
-  svg.setAttribute("height", areaRect.height);
+  const areaWidth = skillCanvas.clientWidth;
+  const areaHeight = skillCanvas.clientHeight;
+  svg.setAttribute("width", areaWidth);
+  svg.setAttribute("height", areaHeight);
 
   connections.forEach(function (connection) {
     const fromWrapper = nodeArea.querySelector(`[data-id='${connection.from}']`);
     const toWrapper = nodeArea.querySelector(`[data-id='${connection.to}']`);
     if (!fromWrapper || !toWrapper) return;
 
-    const fromCircle = fromWrapper.querySelector('.node-circle');
-    const toCircle = toWrapper.querySelector('.node-circle');
-    if (!fromCircle || !toCircle) return;
+    const fromRadius = fromWrapper.offsetWidth / 2;
+    const toRadius = toWrapper.offsetWidth / 2;
 
-    const fromRect = fromCircle.getBoundingClientRect();
-    const toRect = toCircle.getBoundingClientRect();
-    const fromCX = fromRect.left - areaRect.left + fromRect.width / 2;
-    const fromCY = fromRect.top - areaRect.top + fromRect.height / 2;
-    const toCX = toRect.left - areaRect.left + toRect.width / 2;
-    const toCY = toRect.top - areaRect.top + toRect.height / 2;
+    const fromX = Number(fromWrapper.style.left.replace('px', '')) + fromRadius;
+    const fromY = Number(fromWrapper.style.top.replace('px', '')) + fromRadius;
+    const toX = Number(toWrapper.style.left.replace('px', '')) + toRadius;
+    const toY = Number(toWrapper.style.top.replace('px', '')) + toRadius;
 
-    const dx = toCX - fromCX;
-    const dy = toCY - fromCY;
+    const dx = toX - fromX;
+    const dy = toY - fromY;
     const distance = Math.hypot(dx, dy) || 1;
-    const fromRadius = fromRect.width / 2;
-    const toRadius = toRect.width / 2;
-    const x1 = fromCX + (dx / distance) * fromRadius;
-    const y1 = fromCY + (dy / distance) * fromRadius;
-    const x2 = toCX - (dx / distance) * toRadius;
-    const y2 = toCY - (dy / distance) * toRadius;
+    const x1 = fromX + (dx / distance) * fromRadius;
+    const y1 = fromY + (dy / distance) * fromRadius;
+    const x2 = toX - (dx / distance) * toRadius;
+    const y2 = toY - (dy / distance) * toRadius;
 
     connection.line.setAttribute("x1", x1);
     connection.line.setAttribute("y1", y1);
