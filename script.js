@@ -206,7 +206,8 @@ function attachHabitEvents() {
 renderHabits();
 
 // ===================== SKILL TREE =====================
-const nodeArea = document.getElementById("skill-canvas");
+const skillCanvas = document.getElementById("skill-canvas");
+const nodeArea = skillCanvas;
 const svg = document.getElementById("connections-svg");
 const rootButton = document.getElementById("addRootSkill");
 
@@ -214,6 +215,74 @@ let nodes = [];
 let connections = [];
 let nodeCounter = 1;
 const minNodeDistance = 140;
+
+let scale = 1;
+const minScale = 0.6;
+const maxScale = 2.5;
+const touchPointers = new Map();
+let pinchStartDistance = 0;
+let pinchStartScale = 1;
+
+function setZoom(newScale) {
+  scale = Math.min(maxScale, Math.max(minScale, newScale));
+  skillCanvas.style.transform = `scale(${scale})`;
+  updateConnections();
+}
+
+function getDistance(p1, p2) {
+  return Math.hypot(p2.x - p1.x, p2.y - p1.y);
+}
+
+skillCanvas.style.transformOrigin = "0 0";
+
+skillCanvas.addEventListener("wheel", function(event) {
+  if (!event.deltaY) return;
+  event.preventDefault();
+
+  const factor = event.deltaY > 0 ? 0.92 : 1.08;
+  setZoom(scale * factor);
+});
+
+skillCanvas.addEventListener("pointerdown", function(event) {
+  if (event.pointerType !== "touch") return;
+  touchPointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+  if (touchPointers.size === 2) {
+    const points = Array.from(touchPointers.values());
+    pinchStartDistance = getDistance(points[0], points[1]);
+    pinchStartScale = scale;
+  }
+});
+
+skillCanvas.addEventListener("pointermove", function(event) {
+  if (event.pointerType !== "touch" || !touchPointers.has(event.pointerId)) return;
+  touchPointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+  if (touchPointers.size === 2 && pinchStartDistance > 0) {
+    event.preventDefault();
+    const points = Array.from(touchPointers.values());
+    const currentDistance = getDistance(points[0], points[1]);
+    if (currentDistance > 0) {
+      setZoom(pinchStartScale * (currentDistance / pinchStartDistance));
+    }
+  }
+});
+
+skillCanvas.addEventListener("pointerup", function(event) {
+  if (event.pointerType !== "touch") return;
+  touchPointers.delete(event.pointerId);
+  if (touchPointers.size < 2) {
+    pinchStartDistance = 0;
+  }
+});
+
+skillCanvas.addEventListener("pointercancel", function(event) {
+  if (event.pointerType !== "touch") return;
+  touchPointers.delete(event.pointerId);
+  if (touchPointers.size < 2) {
+    pinchStartDistance = 0;
+  }
+});
 
 function addRootNode() {
   const existingRoots = nodes.filter(node => node.parentId === null).length;
@@ -401,8 +470,8 @@ function makeDraggable(wrapper, nodeId) {
     if (!dragging) return;
     const clientX = event.clientX;
     const clientY = event.clientY;
-    const dx = clientX - startX;
-    const dy = clientY - startY;
+    const dx = (clientX - startX) / scale;
+    const dy = (clientY - startY) / scale;
     const areaRect = nodeArea.getBoundingClientRect();
     let newX = initialX + dx;
     let newY = initialY + dy;
@@ -446,6 +515,7 @@ function makeDraggable(wrapper, nodeId) {
 
   wrapper.addEventListener("pointerdown", function (event) {
     // Пропустить, если это не первая кнопка мыши (игнорируем для touch events)
+    if (event.pointerType === "touch") return;
     if (event.pointerType === "mouse" && event.button !== 0) return;
     if (event.target.closest(".node-label-input, .node-add, .node-del")) return;
     event.preventDefault();
@@ -454,8 +524,8 @@ function makeDraggable(wrapper, nodeId) {
     const wrapperRect = wrapper.getBoundingClientRect();
     startX = event.clientX;
     startY = event.clientY;
-    initialX = wrapperRect.left - areaRect.left;
-    initialY = wrapperRect.top - areaRect.top;
+    initialX = (wrapperRect.left - areaRect.left) / scale;
+    initialY = (wrapperRect.top - areaRect.top) / scale;
     wrapper.setPointerCapture(event.pointerId);
     document.addEventListener("pointermove", onPointerMove);
     document.addEventListener("pointerup", endDrag);
