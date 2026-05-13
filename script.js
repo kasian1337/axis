@@ -425,8 +425,8 @@ function updateConnections() {
     const toWrapper = nodeArea.querySelector(`[data-id='${connection.to}']`);
     if (!fromWrapper || !toWrapper) return;
 
-    const fromRadius = fromWrapper.offsetWidth / 2;
-    const toRadius = toWrapper.offsetWidth / 2;
+    const fromRadius = (fromWrapper.offsetWidth / scale) / 2;
+    const toRadius = (toWrapper.offsetWidth / scale) / 2;
 
     const fromX = Number(fromWrapper.style.left.replace('px', '')) + fromRadius;
     const fromY = Number(fromWrapper.style.top.replace('px', '')) + fromRadius;
@@ -483,19 +483,23 @@ function makeDraggable(wrapper, nodeId) {
     const dx = (clientX - startX) / scale;
     const dy = (clientY - startY) / scale;
     const areaRect = nodeArea.getBoundingClientRect();
+    const areaWidth = areaRect.width / scale;
+    const areaHeight = areaRect.height / scale;
+    const nodeWidth = wrapper.offsetWidth / scale;
+    const nodeHeight = wrapper.offsetHeight / scale;
     let newX = initialX + dx;
     let newY = initialY + dy;
 
-    newX = Math.max(0, Math.min(newX, areaRect.width - wrapper.offsetWidth));
-    newY = Math.max(0, Math.min(newY, areaRect.height - wrapper.offsetHeight));
+    newX = Math.max(0, Math.min(newX, areaWidth - nodeWidth));
+    newY = Math.max(0, Math.min(newY, areaHeight - nodeHeight));
 
-    const centerX = newX + wrapper.offsetWidth / 2;
-    const centerY = newY + wrapper.offsetHeight / 2;
+    const centerX = newX + nodeWidth / 2;
+    const centerY = newY + nodeHeight / 2;
 
     const collides = nodes.some(function (other) {
       if (other.id === nodeId) return false;
-      const otherCenterX = other.x + wrapper.offsetWidth / 2;
-      const otherCenterY = other.y + wrapper.offsetHeight / 2;
+      const otherCenterX = other.x + nodeWidth / 2;
+      const otherCenterY = other.y + nodeHeight / 2;
       return Math.hypot(otherCenterX - centerX, otherCenterY - centerY) < minNodeDistance;
     });
 
