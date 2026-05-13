@@ -415,77 +415,32 @@ function connectNodes(fromId, toId) {
 }
 
 function updateConnections() {
-  const svgRect = svg.getBoundingClientRect();
-
   connections.forEach(conn => {
 
-    const fromEl = nodeArea.querySelector(
-      `[data-id='${conn.from}'] .node-circle`
-    );
+    const from = nodes.find(n => n.id === conn.from);
+    const to = nodes.find(n => n.id === conn.to);
 
-    const toEl = nodeArea.querySelector(
-      `[data-id='${conn.to}'] .node-circle`
-    );
+    if (!from || !to) return;
 
-    if (!fromEl || !toEl) return;
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
 
-    const fromRect = fromEl.getBoundingClientRect();
-    const toRect = toEl.getBoundingClientRect();
+    const dist = Math.hypot(dx, dy);
+    if (dist === 0) return;
 
-    // центры кругов
-    const fromCenterX =
-      fromRect.left + fromRect.width / 2;
+    const nx = dx / dist;
+    const ny = dy / dist;
 
-    const fromCenterY =
-      fromRect.top + fromRect.height / 2;
+    const r = 70; // радиус node-circle (140/2)
 
-    const toCenterX =
-      toRect.left + toRect.width / 2;
+    const x1 = from.x + 70 + nx * r;
+    const y1 = from.y + 70 + ny * r;
 
-    const toCenterY =
-      toRect.top + toRect.height / 2;
-
-    // направление
-    const dx = toCenterX - fromCenterX;
-    const dy = toCenterY - fromCenterY;
-
-    const distance = Math.hypot(dx, dy);
-
-    if (distance === 0) return;
-
-    // нормализованный вектор
-    const nx = dx / distance;
-    const ny = dy / distance;
-
-    // радиусы кругов
-    const fromRadius = fromRect.width / 2;
-    const toRadius = toRect.width / 2;
-
-    // старт линии — край первого круга
-    const x1 =
-      fromCenterX +
-      nx * fromRadius -
-      svgRect.left;
-
-    const y1 =
-      fromCenterY +
-      ny * fromRadius -
-      svgRect.top;
-
-    // конец линии — край второго круга
-    const x2 =
-      toCenterX -
-      nx * toRadius -
-      svgRect.left;
-
-    const y2 =
-      toCenterY -
-      ny * toRadius -
-      svgRect.top;
+    const x2 = to.x + 70 - nx * r;
+    const y2 = to.y + 70 - ny * r;
 
     conn.line.setAttribute("x1", x1);
     conn.line.setAttribute("y1", y1);
-
     conn.line.setAttribute("x2", x2);
     conn.line.setAttribute("y2", y2);
   });
