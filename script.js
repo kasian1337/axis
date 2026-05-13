@@ -311,7 +311,7 @@ function addChildNode(parentId) {
   const source = nodes.find(node => node.id === parentId);
   if (!source) return;
 
-  const sameLevelCount = nodes.filter(node => node.parentId === source.parentId).length;
+  const sameLevelCount = nodes.filter(node => node.parentId === source.id).length;
   const x = Math.max(20, source.x + (sameLevelCount - 1) * 100);
   const y = source.y + 210;
 
@@ -321,7 +321,7 @@ function addChildNode(parentId) {
     color: source.color,
     x,
     y,
-    parentId: source.parentId,
+    parentId: source.id,
   };
 
   nodes.push(sibling);
@@ -415,36 +415,79 @@ function connectNodes(fromId, toId) {
 }
 
 function updateConnections() {
-  const areaWidth = skillCanvas.clientWidth;
-  const areaHeight = skillCanvas.clientHeight;
-  svg.setAttribute("width", areaWidth);
-  svg.setAttribute("height", areaHeight);
+  const svgRect = svg.getBoundingClientRect();
 
-  connections.forEach(function (connection) {
-    const fromWrapper = nodeArea.querySelector(`[data-id='${connection.from}']`);
-    const toWrapper = nodeArea.querySelector(`[data-id='${connection.to}']`);
-    if (!fromWrapper || !toWrapper) return;
+  connections.forEach(conn => {
 
-    const fromRadius = (fromWrapper.offsetWidth / scale) / 2;
-    const toRadius = (toWrapper.offsetWidth / scale) / 2;
+    const fromEl = nodeArea.querySelector(
+      `[data-id='${conn.from}'] .node-circle`
+    );
 
-    const fromX = Number(fromWrapper.style.left.replace('px', '')) + fromRadius;
-    const fromY = Number(fromWrapper.style.top.replace('px', '')) + fromRadius;
-    const toX = Number(toWrapper.style.left.replace('px', '')) + toRadius;
-    const toY = Number(toWrapper.style.top.replace('px', '')) + toRadius;
+    const toEl = nodeArea.querySelector(
+      `[data-id='${conn.to}'] .node-circle`
+    );
 
-    const dx = toX - fromX;
-    const dy = toY - fromY;
-    const distance = Math.hypot(dx, dy) || 1;
-    const x1 = fromX + (dx / distance) * fromRadius;
-    const y1 = fromY + (dy / distance) * fromRadius;
-    const x2 = toX - (dx / distance) * toRadius;
-    const y2 = toY - (dy / distance) * toRadius;
+    if (!fromEl || !toEl) return;
 
-    connection.line.setAttribute("x1", x1);
-    connection.line.setAttribute("y1", y1);
-    connection.line.setAttribute("x2", x2);
-    connection.line.setAttribute("y2", y2);
+    const fromRect = fromEl.getBoundingClientRect();
+    const toRect = toEl.getBoundingClientRect();
+
+    // центры кругов
+    const fromCenterX =
+      fromRect.left + fromRect.width / 2;
+
+    const fromCenterY =
+      fromRect.top + fromRect.height / 2;
+
+    const toCenterX =
+      toRect.left + toRect.width / 2;
+
+    const toCenterY =
+      toRect.top + toRect.height / 2;
+
+    // направление
+    const dx = toCenterX - fromCenterX;
+    const dy = toCenterY - fromCenterY;
+
+    const distance = Math.hypot(dx, dy);
+
+    if (distance === 0) return;
+
+    // нормализованный вектор
+    const nx = dx / distance;
+    const ny = dy / distance;
+
+    // радиусы кругов
+    const fromRadius = fromRect.width / 2;
+    const toRadius = toRect.width / 2;
+
+    // старт линии — край первого круга
+    const x1 =
+      fromCenterX +
+      nx * fromRadius -
+      svgRect.left;
+
+    const y1 =
+      fromCenterY +
+      ny * fromRadius -
+      svgRect.top;
+
+    // конец линии — край второго круга
+    const x2 =
+      toCenterX -
+      nx * toRadius -
+      svgRect.left;
+
+    const y2 =
+      toCenterY -
+      ny * toRadius -
+      svgRect.top;
+
+    conn.line.setAttribute("x1", x1);
+    conn.line.setAttribute("y1", y1);
+
+    conn.line.setAttribute("x2", x2);
+    conn.line.setAttribute("y2", y2);
   });
 }
 
