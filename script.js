@@ -41,12 +41,12 @@ timerEl.addEventListener('click', () => {
     interval = null;
     accumulatedTime += Date.now() - startTime;
     saveTimer();
-    statusEl.textContent = "Пауза";
+    if (statusEl) statusEl.textContent = "Пауза";
     tg.sendData("stop");
   } else {
     startTime = Date.now();
     interval = setInterval(updateTimer, 1000);
-    statusEl.textContent = "Работает";
+    if (statusEl) statusEl.textContent = "Работает";
     tg.sendData("start");
   }
 });
@@ -58,7 +58,7 @@ document.getElementById("resetTimer")?.addEventListener("click", () => {
   accumulatedTime = 0;
   saveTimer();
   timerEl.textContent = "00:00:00";
-  statusEl.textContent = "Сброшено";
+  if (statusEl) statusEl.textContent = "Сброшено";
   tg.sendData("reset");
 });
 
@@ -414,30 +414,42 @@ function connectNodes(fromId, toId) {
   updateConnections();
 }
 
+function getCircleCenter(node) {
+  const wrapper = nodeArea.querySelector(`[data-id='${node.id}']`);
+  if (!wrapper) return null;
+  const circle = wrapper.querySelector('.node-circle');
+  if (!circle) return null;
+
+  const centerX = node.x + circle.offsetLeft + circle.offsetWidth / 2;
+  const centerY = node.y + circle.offsetTop + circle.offsetHeight / 2;
+  const radius = circle.offsetWidth / 2;
+
+  return { centerX, centerY, radius };
+}
+
 function updateConnections() {
   connections.forEach(conn => {
-
     const from = nodes.find(n => n.id === conn.from);
     const to = nodes.find(n => n.id === conn.to);
 
     if (!from || !to) return;
 
-    const dx = to.x - from.x;
-    const dy = to.y - from.y;
+    const fromCircle = getCircleCenter(from);
+    const toCircle = getCircleCenter(to);
+    if (!fromCircle || !toCircle) return;
 
+    const dx = toCircle.centerX - fromCircle.centerX;
+    const dy = toCircle.centerY - fromCircle.centerY;
     const dist = Math.hypot(dx, dy);
     if (dist === 0) return;
 
     const nx = dx / dist;
     const ny = dy / dist;
 
-    const r = 70; // радиус node-circle (140/2)
-
-    const x1 = from.x + 70 + nx * r;
-    const y1 = from.y + 70 + ny * r;
-
-    const x2 = to.x + 70 - nx * r;
-    const y2 = to.y + 70 - ny * r;
+    const x1 = fromCircle.centerX + nx * fromCircle.radius;
+    const y1 = fromCircle.centerY + ny * fromCircle.radius;
+    const x2 = toCircle.centerX - nx * toCircle.radius;
+    const y2 = toCircle.centerY - ny * toCircle.radius;
 
     conn.line.setAttribute("x1", x1);
     conn.line.setAttribute("y1", y1);
