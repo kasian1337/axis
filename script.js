@@ -290,7 +290,7 @@ function getDateString(date) {
 
 function getLastNDays(n) {
   const dates = [];
-  for (let i = n - 1; i >= 0; i--) {
+  for (let i = 0; i < n; i++) {
     const date = new Date();
     date.setDate(date.getDate() - i);
     dates.push(getDateString(date));
@@ -345,22 +345,36 @@ function renderHabits() {
   habits.forEach((habit, index) => {
     const lastDays = getLastNDays(14);
     const streak = calculateStreak(habit);
+    const activeDays = lastDays.filter(date => habit.days[date]).length;
+    const completion = Math.round((activeDays / lastDays.length) * 100);
 
     const div = document.createElement("div");
     div.className = "habit";
     div.dataset.index = index;
 
     div.innerHTML = `
-      <div class="habit-info">
-        <span>${habit.name}</span>
-        <span>🔥 ${streak}</span>
+      <div class="habit-progress" style="--completion:${completion}">
+        <span>${completion}%</span>
       </div>
-      <div class="habit-days">
-        ${lastDays.map(date => `
-          <div class="day ${habit.days[date] ? "active" : ""}" data-date="${date}"></div>
-        `).join("")}
+      <div class="habit-content">
+        <div class="habit-info">
+          <span>${habit.name}</span>
+        </div>
+        <div class="habit-days">
+          ${lastDays.map(date => {
+            const dateObj = new Date(date);
+            const day = dateObj.getDate();
+            return `
+              <div class="day-item" data-date="${date}">
+                <div class="day-number">${day}</div>
+                <div class="day-checkbox ${habit.days[date] ? "active" : ""}">
+                  ${habit.days[date] ? "✓" : ""}
+                </div>
+              </div>
+            `;
+          }).join("")}
+        </div>
       </div>
-      <button class="check-btn" data-index="${index}">✔</button>
     `;
 
     list.appendChild(div);
@@ -392,10 +406,10 @@ function attachHabitEvents() {
     };
   });
 
-  document.querySelectorAll(".day").forEach(day => {
-    day.onclick = () => {
-      const date = day.dataset.date;
-      const index = day.closest(".habit").dataset.index;
+  document.querySelectorAll(".day-checkbox").forEach(checkbox => {
+    checkbox.onclick = () => {
+      const date = checkbox.closest(".day-item").dataset.date;
+      const index = checkbox.closest(".habit").dataset.index;
       habits[index].days[date] = !habits[index].days[date];
       renderHabits();
     };
