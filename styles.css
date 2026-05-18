@@ -31,6 +31,94 @@ body {
   opacity: 0.7;
 }
 
+.timer-meta {
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.timer-stats {
+  max-width: 480px;
+  margin: 12px auto 0;
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.stat-labels {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  color: #cbd5f5;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.stat-bar {
+  height: 12px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.stat-fill {
+  height: 100%;
+  background: linear-gradient(90deg,#3b82f6,#06b6d4);
+  width: 0%;
+  transition: width 0.25s ease;
+}
+
+.session-history {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.session-history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.session-history-item .session-bar {
+  flex: 1;
+  height: 16px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-left: 12px;
+}
+
+.session-history-item .session-fill {
+  height: 100%;
+  background: linear-gradient(90deg,#38bdf8,#0ea5e9);
+  transition: width 0.25s ease;
+}
+
+.session-history-item .session-label {
+  color: #e2e8f0;
+  font-size: 13px;
+  min-width: 72px;
+  text-align: right;
+}
+
+.session-history-empty {
+  color: #cbd5f5;
+  text-align: center;
+  opacity: 0.75;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
 .nav {
   position: fixed;
   bottom: 0;

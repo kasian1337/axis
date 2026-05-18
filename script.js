@@ -15,6 +15,10 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
 let startTime = null;
 let interval = null;
 let accumulatedTime = Number(localStorage.getItem("timerTime")) || 0;
+let maxSession = Number(localStorage.getItem("maxSession")) || 0;
+let sessions = JSON.parse(localStorage.getItem('timerSessions') || '[]');
+let pausedSessionDur = 0;
+let sessionBaseDur = 0;
 
 const timerEl = document.getElementById("timer");
 const statusEl = document.getElementById("status");
@@ -33,17 +37,58 @@ function updateTimer() {
   const s = String(totalSeconds % 60).padStart(2, "0");
 
   timerEl.textContent = `${h}:${m}:${s}`;
+  updateStats();
+}
+
+function saveSessions() {
+  try {
+    localStorage.setItem('timerSessions', JSON.stringify(sessions));
+  } catch (e) {}
+}
+
+function saveSessionRecord(duration) {
+  if (duration <= 0) return;
+  if (duration > maxSession) {
+    maxSession = duration;
+    localStorage.setItem("maxSession", maxSession);
+  }
+  sessions.push({ ts: Date.now(), duration });
+  saveSessions();
+}
+
+function commitPendingSession() {
+  let sessionDur = 0;
+  if (interval && startTime) {
+    sessionDur = sessionBaseDur + (Date.now() - startTime);
+  } else if (pausedSessionDur) {
+    sessionDur = pausedSessionDur;
+  }
+  if (sessionDur > 0) {
+    saveSessionRecord(sessionDur);
+  }
+  pausedSessionDur = 0;
+  sessionBaseDur = 0;
+  return sessionDur;
 }
 
 timerEl.addEventListener('click', () => {
+  if (timerLongPressTriggered) { timerLongPressTriggered = false; return; }
   if (interval) {
+    // pause and save a statistics record for this pause
     clearInterval(interval);
     interval = null;
-    accumulatedTime += Date.now() - startTime;
+    pausedSessionDur = sessionBaseDur + (Date.now() - startTime);
+    saveSessionRecord(pausedSessionDur);
+    sessionBaseDur = 0;
+    accumulatedTime += pausedSessionDur;
+    startTime = null;
     saveTimer();
     if (statusEl) statusEl.textContent = "Пауза";
     tg.sendData("stop");
+    updateStats();
   } else {
+    sessionBaseDur = pausedSessionDur;
+    pausedSessionDur = 0;
     startTime = Date.now();
     interval = setInterval(updateTimer, 1000);
     if (statusEl) statusEl.textContent = "Работает";
@@ -51,15 +96,185 @@ timerEl.addEventListener('click', () => {
   }
 });
 
+// Long-press (500ms) on timer to reset
+let timerLongPressTimer = null;
+let timerLongPressTriggered = false;
+
+timerEl.addEventListener('pointerdown', (e) => {
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  timerLongPressTriggered = false;
+  timerLongPressTimer = setTimeout(() => {
+    timerLongPressTriggered = true;
+    // reset timer and save this session into history if any
+    if (interval && startTime) {
+      const sessionDur = sessionBaseDur + (Date.now() - startTime);
+      saveSessionRecord(sessionDur);
+    } else if (pausedSessionDur) {
+      saveSessionRecord(pausedSessionDur);
+    }
+    clearInterval(interval);
+    interval = null;
+    startTime = null;
+    accumulatedTime = 0;
+    pausedSessionDur = 0;
+    sessionBaseDur = 0;
+    saveTimer();
+    timerEl.textContent = "00:00:00";
+    if (statusEl) statusEl.textContent = "Сброшено";
+    tg.sendData("reset");
+    updateStats();
+  }, 500);
+});
+
+function clearTimerLongPress() {
+  if (timerLongPressTimer) {
+    clearTimeout(timerLongPressTimer);
+    timerLongPressTimer = null;
+  }
+}
+
+['pointerup', 'pointercancel', 'pointerleave'].forEach(ev =>
+  timerEl.addEventListener(ev, clearTimerLongPress)
+);
+
+// --- Статистика таймера ---
+const currentSessionLabel = document.getElementById('currentSessionLabel');
+const maxSessionLabel = document.getElementById('maxSessionLabel');
+const statFill = document.getElementById('statFill');
+const sessionHistory = document.getElementById('session-history');
+
+function formatDuration(ms) {
+  if (!ms || ms <= 0) return '00:00:00';
+  const totalSeconds = Math.floor(ms / 1000);
+  const h = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+  const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+  const s = String(totalSeconds % 60).padStart(2, '0');
+  return `${h}:${m}:${s}`;
+}
+
+function updateStats() {
+  try {
+    const currentMs = (interval && startTime) ? (Date.now() - startTime) : pausedSessionDur;
+    const displayMax = maxSession || currentMs || 0;
+
+    if (currentSessionLabel) currentSessionLabel.textContent = timerEl.textContent;
+    if (maxSessionLabel) maxSessionLabel.textContent = '/ ' + formatDuration(displayMax);
+    if (statFill) {
+      const percent = displayMax === 0 ? 0 : Math.min(100, Math.round((currentMs / displayMax) * 100));
+      statFill.style.width = percent + '%';
+    }
+    renderSessionHistory();
+  } catch (e) {
+    // ignore UI update errors when elements are missing
+  }
+}
+
+function deleteSession(index) {
+  sessions.splice(index, 1);
+  saveSessions();
+  if (Array.isArray(sessions) && sessions.length) {
+    maxSession = sessions.reduce((max, rec) => Math.max(max, rec.duration), 0);
+    localStorage.setItem('maxSession', maxSession);
+  } else {
+    maxSession = 0;
+    localStorage.removeItem('maxSession');
+  }
+  updateStats();
+}
+
+function renderSessionHistory() {
+  if (!sessionHistory) return;
+  sessionHistory.innerHTML = '';
+  if (!Array.isArray(sessions) || sessions.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'session-history-empty';
+    empty.textContent = 'Нет статистики сессий';
+    sessionHistory.appendChild(empty);
+    return;
+  }
+
+  const maxDuration = maxSession || sessions.reduce((max, rec) => Math.max(max, rec.duration), 0);
+  for (let i = sessions.length - 1; i >= 0; i--) {
+    const rec = sessions[i];
+    const item = document.createElement('div');
+    item.className = 'session-history-item';
+
+    const label = document.createElement('div');
+    label.className = 'session-label';
+    label.textContent = formatDuration(rec.duration);
+
+    const bar = document.createElement('div');
+    bar.className = 'session-bar';
+
+    const fill = document.createElement('div');
+    fill.className = 'session-fill';
+    const widthPct = maxDuration === 0 ? 0 : Math.min(100, Math.round((rec.duration / maxDuration) * 100));
+    fill.style.width = widthPct + '%';
+
+    bar.appendChild(fill);
+    item.appendChild(label);
+    item.appendChild(bar);
+
+    let deleteTimer = null;
+    item.addEventListener('pointerdown', (event) => {
+      if (event.pointerType === 'mouse' && event.button !== 0) return;
+      deleteTimer = setTimeout(() => {
+        if (confirm('Удалить эту сессию?')) {
+          deleteSession(i);
+        }
+      }, 500);
+    });
+    item.addEventListener('pointerup', () => {
+      if (deleteTimer) {
+        clearTimeout(deleteTimer);
+        deleteTimer = null;
+      }
+    });
+    item.addEventListener('pointercancel', () => {
+      if (deleteTimer) {
+        clearTimeout(deleteTimer);
+        deleteTimer = null;
+      }
+    });
+    item.addEventListener('pointerleave', () => {
+      if (deleteTimer) {
+        clearTimeout(deleteTimer);
+        deleteTimer = null;
+      }
+    });
+
+    sessionHistory.appendChild(item);
+  }
+}
+
+// При инициализации, если maxSession не задан, восстановим из истории
+(function initStatsFromHistory(){
+  try{
+    if ((!maxSession || maxSession === 0) && Array.isArray(sessions) && sessions.length) {
+      maxSession = sessions.reduce((m,s)=> Math.max(m, s.duration), 0);
+      localStorage.setItem('maxSession', maxSession);
+    }
+  }catch(e){}
+})();
+
 document.getElementById("resetTimer")?.addEventListener("click", () => {
+  if (interval && startTime) {
+    const sessionDur = sessionBaseDur + (Date.now() - startTime);
+    saveSessionRecord(sessionDur);
+  } else if (pausedSessionDur) {
+    saveSessionRecord(pausedSessionDur);
+  }
   clearInterval(interval);
   interval = null;
   startTime = null;
   accumulatedTime = 0;
+  pausedSessionDur = 0;
+  sessionBaseDur = 0;
   saveTimer();
   timerEl.textContent = "00:00:00";
   if (statusEl) statusEl.textContent = "Сброшено";
   tg.sendData("reset");
+  updateStats();
 });
 
 // ===================== HABITS =====================
@@ -600,3 +815,4 @@ function makeDraggable(wrapper, nodeId) {
 rootButton.addEventListener("click", addRootNode);
 window.addEventListener("resize", updateConnections);
 addRootNode();
+updateStats();
