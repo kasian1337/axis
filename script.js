@@ -52,7 +52,11 @@ function saveSessionRecord(duration) {
     maxSession = duration;
     localStorage.setItem("maxSession", maxSession);
   }
-  sessions.push({ ts: Date.now(), duration });
+  sessions.push({
+    ts: Date.now(),
+    duration,
+    title: sessionTitle.value
+  });
   saveSessions();
 }
 
@@ -142,6 +146,7 @@ const currentSessionLabel = document.getElementById('currentSessionLabel');
 const maxSessionLabel = document.getElementById('maxSessionLabel');
 const statFill = document.getElementById('statFill');
 const sessionHistory = document.getElementById('session-history');
+const sessionTitle = document.getElementById('sessionTitle');
 
 function formatDuration(ms) {
   if (!ms || ms <= 0) return '00:00:00';
@@ -196,6 +201,9 @@ function renderSessionHistory() {
   const maxDuration = maxSession || sessions.reduce((max, rec) => Math.max(max, rec.duration), 0);
   for (let i = sessions.length - 1; i >= 0; i--) {
     const rec = sessions[i];
+    const name = document.createElement('div')
+    name.className = 'name'
+    name.textContent = rec.title;
     const item = document.createElement('div');
     item.className = 'session-history-item';
 
@@ -212,6 +220,7 @@ function renderSessionHistory() {
     fill.style.width = widthPct + '%';
 
     bar.appendChild(fill);
+    item.appendChild(name);
     item.appendChild(label);
     item.appendChild(bar);
 
@@ -339,11 +348,25 @@ function saveHabits() {
   localStorage.setItem("habits", JSON.stringify(habits));
 }
 
+const habitStatsPanel = document.getElementById("habitStats");
+const statsHabitName = document.getElementById("statsHabitName");
+const currentStreakEl = document.getElementById("currentStreak");
+const bestStreakEl = document.getElementById("bestStreak");
+const totalDaysEl = document.getElementById("totalDays");
+const progressChartCanvas = document.getElementById("progressChart");
+const backToHabitsBtn = document.getElementById("backToHabits");
+const habitListWrapper = document.querySelector(".habit-list");
+const addHabitWrapper = document.querySelector(".add-habit");
+let habitChart = null;
+
 function renderHabits() {
   list.innerHTML = "";
 
+  // вычисляем сколько дат уместится на экран
+  const visibleCount = getVisibleDaysCount();
+
   habits.forEach((habit, index) => {
-    const lastDays = getLastNDays(14);
+    const lastDays = getLastNDays(visibleCount);
     const streak = calculateStreak(habit);
     const activeDays = lastDays.filter(date => habit.days[date]).length;
     const completion = Math.round((activeDays / lastDays.length) * 100);
@@ -384,6 +407,131 @@ function renderHabits() {
   saveHabits();
 }
 
+function getMonthLabels(count) {
+  const labels = [];
+  const now = new Date();
+  for (let i = count - 1; i >= 0; i--) {
+    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    labels.push(date.toLocaleString('ru-RU', { month: 'short', year: 'numeric' }));
+  }
+  return labels;
+}
+
+function getMonthPercentages(habit, monthCount) {
+  const months = [];
+  const now = new Date();
+  for (let i = monthCount - 1; i >= 0; i--) {
+    const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const year = monthDate.getFullYear();
+    const month = monthDate.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    let completed = 0;
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateKey = new Date(year, month, day).toISOString().split('T')[0];
+      if (habit.days[dateKey]) {
+        completed += 1;
+      }
+    }
+    months.push(Math.round((completed / daysInMonth) * 100));
+  }
+  return months;
+}
+
+function renderHabitChart(habit) {
+  if (!progressChartCanvas) return;
+  const monthCount = 6;
+  const labels = getMonthLabels(monthCount);
+  const data = getMonthPercentages(habit, monthCount);
+
+  if (habitChart) {
+    habitChart.destroy();
+    habitChart = null;
+  }
+
+  const ctx = progressChartCanvas.getContext('2d');
+  habitChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Выполнено %',
+        data,
+        backgroundColor: '#3b82f6',
+        borderRadius: 12,
+        maxBarThickness: 44,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 100,
+          ticks: {
+            callback: value => value + '%',
+          },
+        },
+      },
+      plugins: {
+        legend: {
+          display: false,
+        },
+        tooltip: {
+          callbacks: {
+            label: context => `${context.parsed.y}%`,
+          },
+        },
+      },
+    },
+  });
+}
+
+function showHabitStats(index) {
+  const habit = habits[index];
+  if (!habit) return;
+  statsHabitName.textContent = habit.name;
+  currentStreakEl.textContent = calculateStreak(habit);
+  bestStreakEl.textContent = calculateBestStreak(habit);
+  totalDaysEl.textContent = Object.values(habit.days).filter(Boolean).length;
+  renderHabitChart(habit);
+  habitStatsPanel.style.display = 'block';
+  habitListWrapper.style.display = 'none';
+  addHabitWrapper.style.display = 'none';
+}
+
+function hideHabitStats() {
+  habitStatsPanel.style.display = 'none';
+  habitListWrapper.style.display = 'grid';
+  addHabitWrapper.style.display = 'flex';
+}
+
+if (backToHabitsBtn) {
+  backToHabitsBtn.addEventListener('click', hideHabitStats);
+}
+
+// возвращает число видимых дней в строке, зависит от ширины контейнера
+function getVisibleDaysCount() {
+  const container = document.querySelector('.container');
+  const containerWidth = (container && container.clientWidth) ? container.clientWidth : window.innerWidth;
+  // оценочная ширина одного элемента (включая gap)
+  const dayItemWidth = 36;
+  // вычитаем ширину блока прогресса и отступы слева/справа
+  const reserved = 140;
+  const avail = Math.max(0, containerWidth - reserved);
+  const count = Math.floor(avail / dayItemWidth);
+  return Math.max(7, Math.min(60, count));
+}
+
+// при изменении размера экрана — перерисовать с новым количеством дат (с дебаунсом)
+let _resizeTimer = null;
+window.addEventListener('resize', () => {
+  if (_resizeTimer) clearTimeout(_resizeTimer);
+  _resizeTimer = setTimeout(() => {
+    renderHabits();
+  }, 120);
+});
+
 addBtn.onclick = () => {
   const name = input.value.trim();
   if (!name) return;
@@ -413,6 +561,18 @@ function attachHabitEvents() {
       habits[index].days[date] = !habits[index].days[date];
       renderHabits();
     };
+  });
+
+  document.querySelectorAll(".habit-info").forEach(info => {
+    info.style.cursor = 'pointer';
+    info.addEventListener('click', event => {
+      event.stopPropagation();
+      const habitDiv = info.closest('.habit');
+      const index = habitDiv?.dataset.index;
+      if (index != null) {
+        showHabitStats(Number(index));
+      }
+    });
   });
 
   document.querySelectorAll(".habit").forEach(habitDiv => {
